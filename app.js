@@ -52,23 +52,27 @@ const api3 = (req, res) => {
     });
 };
 
-async function api_4() {
-  const api4 = (req, res) => {
-      let q = "SELECT email FROM occupiedslot where email = $email"
-    
-      db.query(q, (err, data) => {
-        if (data) return res.status(200).json("User already exists");
-        //res.send('Parkinginfo table created!');
-        return res.status(500).json();
-        //const [result1] = await connection.execute("DELETE FROM occupiedslot WHERE email = $email");
-        //return result1;
-      });
-  };
-
-  const [result1] = await connection.execute("DELETE FROM occupiedslot WHERE email = $email");
-  const [result2] = await connection.execute("UPDATE parkinginfo SET exitTime = NOW(), timediff = TIMEDIFF(MINUTE, exitTime, entryTime), cost = timediff * 0.5 where  email = $email");
-
-}
+const api4 = (req, res) => {
+    let q1 = "SELECT email FROM occupiedslot where email = $(req.params.email)"
+    let q2 = "DELETE * FROM occupiedslot WHERE email = $(req.params.email)"
+    let q3 = "UPDATE parkinginfo SET exitTime = NOW(), timediff = DATEDIFF(MINUTE, exitTime, entryTime), cost = timediff*0.5 where parkinginfo.email = $(req.params.email)"
+    db.query(q1, (err1, data1) => {
+      if (err1) return res.status(200).json("User not found!");
+      else {
+        db.query(q2, (err2, data2) => {
+          if(err2) return res.status(200).json("Data cannot be deleted!");
+          else {
+            db.query(q3, (err3, data3) => {
+              if(err3) return res.status(200).json("Data cannot be inserted into parkinginfo Table!");
+              else {
+                return res.status(500).json("Success!");
+              }
+            })
+          }
+        })
+      }
+    });
+};
 
 setInterval(() => db.query("select 1"), 10000);
 
