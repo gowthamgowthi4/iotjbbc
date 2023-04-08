@@ -12,28 +12,28 @@ app.use("/", router);
 app.use("/user", userRouter);
 
 const api1 = (req, res) => {
-    let q = "SELECT email FROM userinfo where email = $email"
+    let q = `SELECT email FROM userinfo where email = ${req.params.email};`
   
     db.query(q, (err, data) => {
       if (data) return res.status(200).json("User already exists");
       //res.send('Parkinginfo table created!');
-      return res.status(500).json();
+      return res.status(500).json(err);
     });
 };
 
 const api2 = (req, res) => {
-    let q = "INSERT INTO userinfo VALUES($numberplate, $email, $username, $phonenumber, 600)"
+    let q = `INSERT INTO userinfo VALUES(${req.params.numberplate}, ${req.params.email}, ${req.params.username}, ${req.params.phonenumber}, 600);`
   
     db.query(q, (err, data) => {
-      if (data) return res.status(500).json();
+      if (data) return res.status(200).json(data);
       //res.send('Parkinginfo table created!');
-      return res.status(200).json("Error!");
+      return res.status(500).json(err);
     });
 };
 
 const api3 = (req, res) => {
-    let q1 = "INSERT INTO occupiedslot(slotname, floor, numberplate, email, username, phonenumber) SELECT freeslot.slotname, freeslot.floor, userinfo.numberplate, userinfo.email, userinfo.username, userinfo.phonenumber FROM freeslot, userinfo where userinfo.email = $(req.params.email);"
-    let q2 = "INSERT INTO parkinginfo(numberplate, entryTime, email, username, status) SELECT numberplate, NOW(), email, username, TRUE FROM occupiedslot where occupiedslot.email = $(req.params.email)"
+    let q1 = `INSERT INTO occupiedslot(slotname, floor, numberplate, email, username, phonenumber) SELECT freeslot.slotname, freeslot.floor, userinfo.numberplate, userinfo.email, userinfo.username, userinfo.phonenumber FROM freeslot, userinfo where userinfo.email = ${req.params.email};`
+    let q2 = `INSERT INTO parkinginfo(numberplate, entryTime, email, username, status) SELECT numberplate, NOW(), email, username, TRUE FROM occupiedslot where occupiedslot.email = ${req.params.email};`
     
     db.query(q1, (err1, data1) => {
       if (err1) {
@@ -53,9 +53,9 @@ const api3 = (req, res) => {
 };
 
 const api4 = (req, res) => {
-    let q1 = "SELECT email FROM occupiedslot where email = $(req.params.email)"
-    let q2 = "DELETE * FROM occupiedslot WHERE email = $(req.params.email)"
-    let q3 = "UPDATE parkinginfo SET exitTime = NOW(), timediff = DATEDIFF(MINUTE, exitTime, entryTime), cost = timediff*0.5 where parkinginfo.email = $(req.params.email)"
+    let q1 = `SELECT email FROM occupiedslot where email = ${req.params.email}`
+    let q2 = `DELETE * FROM occupiedslot WHERE email = ${req.params.email}`
+    let q3 = `UPDATE parkinginfo SET exitTime = NOW(), timediff = DATEDIFF(MINUTE, exitTime, entryTime), cost = timediff*0.5 where parkinginfo.email = ${req.params.email}`
     db.query(q1, (err1, data1) => {
       if (err1) return res.status(200).json("User not found!");
       else {
